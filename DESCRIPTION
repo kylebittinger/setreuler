@@ -1,0 +1,17 @@
+Package: setreuler
+Type: Package
+Title: Create rectangular Euler diagrams
+Version: 0.1.0
+Authors@R: person("Kyle", "Bittinger", email = "kylebittinger@gmail.com",
+  role = c("aut", "cre"))
+Description: Create rectangular diagrams that show the overlap between two sets.
+  The rectangular shape makes the diagrams convenient for listing out the items
+  in each area. Currently, only two sets are supported.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Suggests: 
+    testthat,
+    ggplot2,
+    ggforce
+RoxygenNote: 7.1.1
