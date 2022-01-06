@@ -1,0 +1,62 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# setreuler
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+The goal of setreuler is to draw boxy Euler diagrams.
+
+## Installation
+
+You can install the development version from [GitHub](https://github.com/) with:
+
+``` r
+# install.packages("devtools")
+devtools::install_github("kylebittinger/setreuler")
+```
+## Example
+
+```{r include=FALSE}
+devtools::load_all()
+```
+
+
+This is a basic example which shows you how to solve a common problem:
+
+```{r example}
+library(tidyverse)
+
+in_a <- rep(c(T, F), c(10, 1))
+in_b <- rep(c(F, T), c(5, 6))
+
+d <- tibble::tibble(
+  label = LETTERS[1:11],
+  setA = in_a,
+  setB = in_b)
+
+d_coords <- d %>%
+  summarize(setreuler_coordinates(setA, setB, offset = 0.1, width = 2))
+
+r <- grid::unit(2, "mm")
+myplot <- d_coords %>%
+  ggplot(aes(x = x, y = y, group = group)) +
+  ggforce::geom_shape(aes(fill = group), alpha = 0.5, radius = r) +
+  ggforce::geom_shape(color = "black", fill = NA, radius = r) +
+  coord_equal() +
+  theme_minimal()
+```
+

@@ -1,0 +1,133 @@
+setreuler_coordinates <- function (in_a, in_b, width = 10, offset = 0) {
+
+  in_a <- as.logical(in_a)
+  in_b <- as.logical(in_b)
+
+  area_a <- sum(in_a)
+  area_b <- sum(in_b)
+  area_ab <- sum(in_a & in_b)
+
+  # Temporary coordinates for set a
+  # (the top rectangle)
+  width_a <- width
+  height_a <- area_a / width_a
+  x_a <- 0
+  y_a <- 0
+
+  # Temporary coordinates for set b
+  # (the bottom rectangle)
+  width_b <- width
+  height_b <- area_b / width_b
+  # Start with set b pushed all the way to the bottom right
+  # In this position, x_b is the maximum offset
+  # In general, area_ab = width_ab * height_ab
+  # In this position,
+  #   width_ab = min(x_a + width_a, x_b + width_b) - max(x_a, x_b)
+  #            = width_a - x_b
+  #   height_ab = min(height_a, height_b)
+  #   area_ab = (width_a - x_b) * height_ab
+  #   area_ab / height_ab = width_a - x_b
+  #   x_b = width_a - area_ab / height_ab
+  #   x_b = width_a - area_ab / min(height_a, height_b)
+  x_b <- width_a - (area_ab / min(height_a, height_b))
+  y_b <- 0
+
+  # Right now, x_b is the maximum offset
+  if (offset < x_b) {
+    # Reduce x_b to desired offset and compensate by moving set a up
+    x_b <- offset
+    # Having moved set b, we can calculate the area of overlap as above
+    #   width_ab = width_a - x_b
+    #   height_ab = min(height_a, height_b)
+    # current_area_ab = (width_a - x_b) * min(height_a, height_b)
+    current_area_ab <- (width_a - x_b) * min(height_a, height_b)
+    excess_area_ab <- current_area_ab - area_ab
+    # Increase y_a to reduce overlap by needed amount
+    # y_a * width_ab = excess_overlap
+    # y_a = excess_overlap / width_ab
+    y_a <- excess_area_ab / (width_a - x_b)
+  }
+
+  # Build the result
+  data.frame(
+    x = c(
+      x_a, x_a, x_a + width_a, x_a + width_a,
+      x_b, x_b, x_b + width_b, x_b + width_b),
+    y = c(
+      y_a, y_a + height_a, y_a + height_a, y_a,
+      y_b, y_b + height_b, y_b + height_b, y_b),
+    group = c(
+      "A", "A", "A", "A", "B", "B", "B", "B"),
+    stringsAsFactors = FALSE)
+}
+
+setreuler_text <- function (items, in_a, in_b, coordinate_data = NULL, x_pad = 0.1, y_pad = 0.1) {
+  items <- as.character(items)
+  in_a <- as.logical(in_a)
+  in_b <- as.logical(in_b)
+
+  items_in_a <- items[in_a & !in_b]
+  items_in_b <- items[in_b & !in_a]
+  items_in_both <- items[in_a & in_b]
+
+  text_in_a <- paste(items_in_a, collapse = "\n")
+  text_in_b <- paste(items_in_b, collapse = "\n")
+  text_in_both <- paste(items_in_both, collapse = "\n")
+
+  res <- data.frame(
+    label = c("Set A only", "Set A and Set B", "Set B only"),
+    items = c(text_in_a, text_in_both, text_in_b),
+    stringsAsFactors = FALSE)
+
+  if (!is.null(coordinate_data)) {
+    # top left of Set A rectangle (row 2)
+    x_a <- coordinate_data$x[2] + x_pad
+    y_a <- coordinate_data$y[2] - y_pad
+    # top left of Set B rectangle (row 6)
+    x_ab <- coordinate_data$x[6] + x_pad
+    y_ab <- coordinate_data$y[6] - y_pad
+    # left of Set B rectangle (row 6), bottom of Set A rectangle (row 1)
+    x_b <- coordinate_data$x[6] + x_pad
+    y_b <- coordinate_data$y[1] - y_pad
+    res$x <- c(x_a, x_ab, x_b)
+    res$y <- c(y_a, y_ab, y_b)
+  }
+
+  res
+}
+
+setreuler_plot <- function (coordinates_data, radius = NULL) {
+  stop_if_not_installed("ggplot2")
+
+  p <- ggplot2::ggplot(
+    coordinates_data,
+    ggplot2::aes(x = x, y = y))
+
+  if (is.null(radius)) {
+    p <- p +
+      ggplot2::geom_polygon(
+        ggplot2::aes(fill = group, group = group), alpha = 0.5, data = coordinates_data) +
+      ggplot2::geom_polygon(
+        ggplot2::aes(group = group), color = "black", fill = NA, data = coordinates_data)
+  } else {
+    stop_if_not_installed("ggforce", needed_for = "rounded corners")
+    p <- p +
+      ggforce::geom_shape(
+        ggplot2::aes(fill = group, group = group), alpha = 0.5, radius = radius, data = coordinates_data) +
+      ggforce::geom_shape(
+        ggplot2::aes(group = group), color = "black", fill = NA, radius = radius, data = coordinates_data)
+  }
+
+  p +
+    ggplot2::coord_equal() +
+    ggplot2::theme_classic()
+}
+
+stop_if_not_installed <- function (package, needed_for = "this function") {
+  is_installed <- requireNamespace(package, quietly = TRUE)
+  if (!is_installed) {
+    stop(
+      "Package ", package, " is needed for ", needed_for,
+      " but is not installed.", call. = FALSE)
+  }
+}
