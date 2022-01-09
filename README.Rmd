@@ -52,11 +52,14 @@ d_coords <- d %>%
   summarize(setreuler_coordinates(setA, setB, offset = 0.1, width = 2))
 
 r <- grid::unit(2, "mm")
-myplot <- d_coords %>%
+```
+
+```{r example_plot}
+d_coords %>%
   ggplot(aes(x = x, y = y, group = group)) +
   ggforce::geom_shape(aes(fill = group), alpha = 0.5, radius = r) +
   ggforce::geom_shape(color = "black", fill = NA, radius = r) +
   coord_equal() +
-  theme_minimal()
+  theme_void()
 ```
 

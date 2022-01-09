@@ -1,3 +1,11 @@
+#' Generate coordinates for a Euler diagram
+#'
+#' @param in_a Logical vector for inclusion in set A.
+#' @param in_b logical vector for inclusion in set B.
+#' @param width width of the rectangle for set A.
+#' @param offset horizontal offset for the rectangle of set B.
+#' @return A data frame of coordinates for a Euler diagram.
+#' @export
 setreuler_coordinates <- function (in_a, in_b, width = 10, offset = 0) {
 
   in_a <- as.logical(in_a)
