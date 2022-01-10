@@ -136,7 +136,8 @@ setreuler_plot <- function (coordinates_data, radius = NULL) {
 
   p +
     ggplot2::coord_equal() +
-    ggplot2::theme_void()
+    ggplot2::theme_void() +
+    ggplot2::theme(legend.position = "none")
 }
 
 stop_if_not_installed <- function (package, needed_for = "this function") {
